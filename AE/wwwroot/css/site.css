@@ -11,7 +11,22 @@ body {
     padding-left: 15px;
     padding-right: 15px;
 }
-
+.first-example{
+    margin-top:100px;
+    margin-left:20%;
+    margin-right: 20%;
+    border:2px solid black;
+    padding: 10%;
+    padding-bottom: 2%;
+}
+.second-example{
+    margin-top:100px;
+    margin-left:10%;
+    margin-right:10%;
+    border:2px solid black;
+    padding: 5%;
+    padding-bottom: 2%;
+}
 /* Carousel */
 .carousel-caption p {
     font-size: 20px;

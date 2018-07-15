@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "name": "asp.net",
+  "private": true,
+  "devDependencies": {},
+  "dependencies": {
+    "@types/d3": "^3.5.36",
+    "ajax": "0.0.4",
+    "d3": "^3.5.5",
+    "gulp-concat": "^2.6.1"
+  }
+}

@@ -28,7 +28,19 @@ namespace AE.Controllers
 
             return View();
         }
-
+        [HttpGet]
+        public JsonResult CreateResult()
+        {
+            Dictionary<String, int> Fruits = new Dictionary<string,int>();
+            Fruits.Add("Apple",5);
+            Fruits.Add("Pineapple", 40);
+            Fruits.Add("Banana", 9);
+            Fruits.Add("Orange", 14);
+            Fruits.Add("Chestnuts", 25);
+            Fruits.Add("Cherry", 12);
+            return new JsonResult(new { Fruits});
+        }
+       
         public IActionResult Privacy()
         {
             return View();

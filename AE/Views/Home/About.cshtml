@@ -1,7 +1,315 @@
 ﻿@{
     ViewData["Title"] = "About";
 }
-<h2>@ViewData["Title"]</h2>
-<h3>@ViewData["Message"]</h3>
+<style type="text/css">
 
-<p>Use this area to provide additional information.</p>
+			.area {
+				fill: teal;
+				stroke: none;
+			}
+
+			.line {
+				fill: none;
+				stroke: teal;
+				stroke-width: 0.5;
+			}
+
+			.safeLevel {
+				stroke: red;
+				stroke-dasharray: 2, 3;
+			}
+            .cold{
+				fill:darkcyan;
+			}
+			.danger {
+				fill: red;
+			}
+
+			.dangerLabel {
+				font-family: Helvetica, sans-serif;
+				font-size: 12px;
+				fill: rgb(41, 1, 1);
+			}
+.ColdLabel {
+				font-family: Helvetica, sans-serif;
+				font-size: 12px;
+				fill:rgb(0, 27, 27);
+			}
+		</style>
+<div class="first-example"></div>
+<div class="second-example"></div>
+
+<script type="text/javascript">
+httpGetAsync("https://localhost:5001/Home/CreateResult",DrawStat);
+function httpGetAsync(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
+function DrawStat(callback){
+	var dataset = [  ];
+	var keys = [];
+	var v = JSON.parse(callback);
+	for (var variant in v){
+	  var textHeading = document.createElement("p");
+	  textHeading.innerText = variant;
+	  textHeading.setAttribute("style","text-align: center;margin-top:10px;");
+	}
+	for (var c in v)
+{
+	for(var b in v[c]){
+	keys.push(b);
+	dataset.push(v[c][b]);
+	}
+   
+}
+	var w = 500;
+	var h = 160;
+	var barPadding = 20;
+			
+	
+			
+			//Create SVG element
+			var svg = d3.selectAll("div")
+			            .filter(".first-example")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+           
+
+			svg.selectAll("rect")
+			   .data(dataset)
+			   .enter()
+			   .append("rect")
+	
+			   .attr("x", function(d, i) {
+			   		return i * (w / dataset.length);
+			   })
+			   .attr("y", function(d) {
+			   		return h - (d * 5);
+			   })
+			   .attr("width", w / dataset.length - barPadding)
+			   .attr("height", function(d) {
+			   		return d * 5-10;
+			   })
+			   .attr("fill", function(d){return "rgb(0,"+(60+Math.round(d*3)) +",0)"});
+               
+
+              
+			   svg.selectAll("text")
+			   .data(keys)
+			   .enter()
+			   .append("text")
+			   .text(function(d) {
+			   		return d;
+			   })
+			   .attr("text-anchor", "middle")
+			   .attr("x", function(d, i) {
+			   		return i * (w / dataset.length) + (w / dataset.length - barPadding) / 2;
+			   })
+			   .attr("y", function(d) {
+			   		return h;
+			   })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "black");
+			   svg.selectAll("div")
+			   .filter(".first-example")
+			   .data(dataset)
+			   .enter()
+			   .append("text")
+			   .text(function(d) {
+			   		return d;
+			   })
+			   .attr("text-anchor", "middle")
+			   .attr("x", function(d, i) {
+				   
+			   		return i * (w / dataset.length) + (w / dataset.length - barPadding) / 2;
+			   })
+			   .attr("y", function(d) {
+			   		return h - (d * 3) + 4;
+			   })
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "white");
+			 
+			   document.getElementsByClassName("first-example").item(0).append(textHeading);
+
+              
+
+}
+
+
+			var w = 800;
+			var h = 300;
+			var padding = 40;
+			
+			var dataset, xScale, yScale, xAxis, yAxis, area, dangerArea; 
+
+			var formatTime = d3.timeFormat("%Y.%m.%d");
+
+			
+			var rowConverter = function(d) {
+				
+				return {
+					date: new Date(d.Year,(d.Month-1),d.Day), 
+					temperature: d.Temperature  
+				};
+			}
+
+			
+			d3.csv("https://localhost:5001/example.csv", rowConverter, function(data) {
+
+				var dataset = data;
+
+			
+				
+				xScale = d3.scaleTime()
+							     .domain([
+									d3.min(dataset, function(d) { return d.date; }),
+									d3.max(dataset, function(d) { return d.date; })
+								])
+							   .range([padding, w]);
+
+				yScale = d3.scaleLinear()
+								.domain([
+									d3.min(dataset, function(d) { if ( d.temperature >= 0) return d.temperature; }),
+									d3.max(dataset, function(d) { return d.temperature; })
+								])
+								.range([h - padding, 0]);
+
+				//Define axes
+				xAxis = d3.axisBottom()
+						   .scale(xScale)
+						   .ticks(5)
+						   .tickFormat(formatTime);
+
+				//Define Y axis
+				yAxis = d3.axisLeft()
+						   .scale(yScale)
+						   .ticks(10);
+
+				//Define area generators
+				area = d3.area()
+							.defined(function(d) { return d.temperature >= 0; })
+							.x(function(d) { return xScale(d.date); })
+							.y0(function() { return yScale.range()[0]; })
+							.y1(function(d) { return yScale(d.temperature); });
+
+				hotArea = d3.area()
+							.defined(function(d) { return d.temperature >= 28; })
+							.x(function(d) { return xScale(d.date); })
+							.y0(function() { return yScale(28); })
+							.y1(function(d) { return yScale(d.temperature); });
+
+				ColdArea = d3.area()
+							.defined(function(d) { return d.temperature >= 23; })
+							.x(function(d) { return xScale(d.date); })
+							.y0(function() { return yScale(23); })
+							.y1(function(d) { return yScale(d.temperature); });
+
+				//Create SVG element
+				var svg = d3.selectAll("div")
+				            .filter(".second-example")
+							.append("svg")
+							.attr("width", w)
+							.attr("height", h);
+
+				//Create areas
+				svg.append("path")
+					.datum(dataset)
+					.attr("class", "area")
+					.attr("d", area);
+                svg.append("path")
+					.datum(dataset)
+					.attr("class", "area cold")
+					.attr("d", ColdArea);
+				svg.append("path")
+					.datum(dataset)
+					.attr("class", "area danger")
+					.attr("d", hotArea);
+
+				
+
+				//Create axes
+				svg.append("g")
+					.attr("class", "axis")
+					.attr("transform", "translate(0," + (h - padding) + ")")
+					.call(xAxis);
+
+				svg.append("g")
+					.attr("class", "axis")
+					.attr("transform", "translate(" + padding + ",0)")
+					.call(yAxis);
+
+				
+				svg.append("line")
+					.attr("class", "line safeLevel")
+					.attr("x1", padding)
+					.attr("x2", w)
+					.attr("y1", yScale(28))
+					.attr("y2", yScale(28));
+
+				//Label 350 ppm line
+				svg.append("text")
+					.attr("class", "dangerLabel")
+					.attr("x", padding + 10)
+					.attr("y", yScale(28) - 7)
+					.text("The hot weather");
+
+			   svg.append("line")
+					.attr("class", "line ColdLevel")
+					.attr("x1", padding)
+					.attr("x2", w)
+					.attr("y1", yScale(23))
+					.attr("y2", yScale(23));
+
+				//Label 350 ppm line
+				svg.append("text")
+					.attr("class", "ColdLabel")
+					.attr("x", padding + 10)
+					.attr("y", yScale(23) - 7)
+					.text("For summer it`s cold weather");
+
+
+			});
+	     var textHeading = document.createElement("p");
+		 textHeading.innerText="The Weather Analytics";
+		 textHeading.setAttribute("style","text-align: center;margin-top:10px;");
+          document.getElementsByClassName("second-example").item(0).append(textHeading);
+			
+		</script>
+	<script type="text/javascript">
+
+			//Width and height
+			var w = 500;
+			var h = 300;
+
+			//Define path generator, using the Albers USA projection
+			var path = d3.geoPath()
+				 		 .projection(d3.geoAlbersUsa());
+
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			//Load in GeoJSON data
+			d3.json("https://localhost:5001/Ukraine.json", function(json) {
+				
+				//Bind data and create one path per GeoJSON feature
+				svg.selectAll("path")
+				   .data(json.features)
+				   .enter()
+				   .append("path")
+				   .attr("d", path);
+		
+			});
+			
+		</script>
